@@ -359,7 +359,7 @@ class JS9:
             self.__dict__['sockioResult'] = ''
             self._block_cb = Condition()
             self._block_cb.acquire()
-            self.sockio.emit('msg', obj, callback=self.sockioCB)
+            self.sockio.emit(msg, obj, callback=self.sockioCB)
             self._block_cb.wait(timeout=js9Globals['wait'])
             self._block_cb.release()
 #            self.sockio.wait_for_callbacks(seconds=js9Globals['wait'])
