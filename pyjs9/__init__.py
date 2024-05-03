@@ -231,10 +231,11 @@ class JS9:
 
     """
 
-    def __init__(self, host='http://localhost:2718', id='JS9', multi=False, pageid=None, maxtries=5, delay=1, debug=False):  # pylint: disable=redefined-builtin, too-many-arguments, line-too-long
+    def __init__(self, host='http://localhost:2718', id='JS9', socketio_path='socket.io', multi=False, pageid=None, maxtries=5, delay=1, debug=False):  # pylint: disable=redefined-builtin, too-many-arguments, line-too-long
         """
         :param host: host[:port] (def: 'http://localhost:2718')
         :param id: the JS9 display id (def: 'JS9')
+        :param socketio_path: subpath to socketio server (optional)
 
         :rtype: JS9 object connected to a single instance of js9
 
@@ -265,6 +266,7 @@ class JS9:
         self.__dict__['multi'] = multi
         self.__dict__['pageid'] = pageid
         # open socket.io connection, if necessary
+        logging.debug(f"Trying Transport mode: {js9Globals['transport']}")
         if js9Globals['transport'] == 'socketio':
             try:
                 if debug:
@@ -272,10 +274,12 @@ class JS9:
                                                   engineio_logger=True)
                 else:
                     self.sockio = socketio.Client()
-                self.sockio.connect(host)
+                logging.debug(f"### Connecting to socketio host: {host} at path {socketio_path}")
+                self.sockio.connect(host, socketio_path=socketio_path)
             except Exception as e:  # pylint: disable=broad-except
-                logging.warning('socketio connect failed: %s, using html', e)
+                logging.warning('socketio connect failed: %s, using HTTP', e)
                 js9Globals['transport'] = 'html'
+        logging.debug(f"Using Transport mode: {js9Globals['transport']}")
         self._block_cb = None
         # wait for connect be ready, but success doesn't really matter here
         tries = 0
@@ -338,6 +342,7 @@ class JS9:
 
         if js9Globals['transport'] == 'html': # pylint: disable=no-else-return
             host = self.__dict__['host']
+            logging.debug(f"Sending HTTP POST to host: {host} with msg: {msg} and json: {obj}")
             try:
                 url = requests.post(host + '/' + msg, json=obj)
             except IOError as e:
