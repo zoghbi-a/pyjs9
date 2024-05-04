@@ -275,7 +275,8 @@ class JS9:
                 else:
                     self.sockio = socketio.Client()
                 logging.debug(f"### Connecting to socketio host: {host} at path {socketio_path}")
-                self.sockio.connect(host, socketio_path=socketio_path)
+                self.sockio.connect(host, socketio_path=socketio_path,
+                                    wait=True, wait_timeout=delay, retry=maxtries)
             except Exception as e:  # pylint: disable=broad-except
                 logging.warning('socketio connect failed: %s, using HTTP', e)
                 js9Globals['transport'] = 'html'
